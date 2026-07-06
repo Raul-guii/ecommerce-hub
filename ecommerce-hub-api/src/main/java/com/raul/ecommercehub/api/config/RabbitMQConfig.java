@@ -1,5 +1,6 @@
 package com.raul.ecommercehub.api.config;
 
+import com.raul.ecommercehub.shared.messaging.RabbitMQNames;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     public static final String SYNC_EXCHANGE = "sync-exchange";
-    public static final String SYNC_QUEUE = "sync-queue";
+    public static final String SYNC_QUEUE = RabbitMQNames.SYNC_QUEUE;
     public static final String SYNC_ROUTING_KEY = "sync";
 
     public static final String DLQ_EXCHANGE = "sync-dlq-exchange";

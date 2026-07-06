@@ -70,8 +70,9 @@ public class BatchItem {
         this.attemptCount++;
     }
 
-    public void markDeadLetter() {
+    public void markDeadLetter(String reason) {
         this.status = BatchItemStatus.DEAD_LETTER;
+        this.lastError = reason;
     }
 
     public UUID getId() { return id; }

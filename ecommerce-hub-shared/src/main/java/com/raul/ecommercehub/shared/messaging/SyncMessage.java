@@ -1,4 +1,4 @@
-package com.raul.ecommercehub.api.batch;
+package com.raul.ecommercehub.shared.messaging;
 
 import java.math.BigDecimal;
 import java.util.UUID;

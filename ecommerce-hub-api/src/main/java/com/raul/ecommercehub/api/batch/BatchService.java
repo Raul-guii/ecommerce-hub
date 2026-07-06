@@ -4,6 +4,7 @@ import com.raul.ecommercehub.api.config.RabbitMQConfig;
 import com.raul.ecommercehub.shared.domain.Batch;
 import com.raul.ecommercehub.shared.domain.BatchItem;
 import com.raul.ecommercehub.shared.domain.Product;
+import com.raul.ecommercehub.shared.messaging.SyncMessage;
 import com.raul.ecommercehub.shared.repository.BatchItemRepository;
 import com.raul.ecommercehub.shared.repository.BatchRepository;
 import com.raul.ecommercehub.shared.repository.ProductRepository;

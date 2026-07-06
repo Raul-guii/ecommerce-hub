@@ -52,8 +52,7 @@ public class TenantFilterInterceptor extends OncePerRequestFilter {
             TenantContext.set(tenantId);
             entityManager.unwrap(Session.class)
                     .enableFilter("tenantFilter")
-                    .setParameter("tenantId", tenantId);
-
+                    .setParameter("tenantId", tenantId.toString());
             try {
                 chain.doFilter(request, response);
             } catch (Exception e) {

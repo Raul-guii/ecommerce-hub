@@ -20,7 +20,7 @@ import java.util.UUID;
  * Never enable this filter with a tenant id taken directly from client input.
  */
 @MappedSuperclass
-@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = UUID.class))
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = String.class))
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 public abstract class TenantOwnedEntity {
 
