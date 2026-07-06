@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Maven
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Angular (once ecommerce-hub-frontend/ exists)
+node_modules/
+dist/
+.angular/
+
+# OS
+.DS_Store

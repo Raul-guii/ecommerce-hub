@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: ecommerce-hub-worker
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:ecommerce_hub}
+    username: ${DB_USERNAME:ecommerce_hub}
+    password: ${DB_PASSWORD:changeme}
+
+  jpa:
+    hibernate:
+      # Same schema as the API, owned by Flyway there — the Worker only reads/writes
+      # through it, it never runs migrations itself.
+      ddl-auto: validate
+    open-in-view: false
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+# Queue/exchange names, Resilience4j and Feign client config land here in step 5/6.
+
+server:
+  port: ${SERVER_PORT:8081}
+
+logging:
+  level:
+    com.raul.ecommercehub: ${APP_LOG_LEVEL:INFO}
