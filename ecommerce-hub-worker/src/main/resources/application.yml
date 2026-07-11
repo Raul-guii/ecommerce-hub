@@ -9,8 +9,6 @@ spring:
 
   jpa:
     hibernate:
-      # Same schema as the API, owned by Flyway there — the Worker only reads/writes
-      # through it, it never runs migrations itself.
       ddl-auto: validate
     open-in-view: false
 
@@ -20,7 +18,20 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
-# Queue/exchange names, Resilience4j and Feign client config land here in step 5/6.
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+  resilience4j:
+    circuitbreaker:
+      instances:
+        marketplaceSync:
+          sliding-window-size: 10
+          minimum-number-of-calls: 5
+          failure-rate-threshold: 50
+          wait-duration-in-open-state: 30s
+          permitted-number-of-calls-in-half-open-state: 1
+          automatic-transition-from-open-to-closed-enabled: true
 
 server:
   port: ${SERVER_PORT:8081}

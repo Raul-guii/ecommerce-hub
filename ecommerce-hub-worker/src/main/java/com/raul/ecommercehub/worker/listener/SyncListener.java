@@ -1,10 +1,14 @@
 package com.raul.ecommercehub.worker.listener;
 
 import com.raul.ecommercehub.shared.domain.BatchItem;
+import com.raul.ecommercehub.shared.domain.TenantIntegrationConfig;
+import com.raul.ecommercehub.shared.domain.enums.MarketplaceType;
 import com.raul.ecommercehub.shared.messaging.RabbitMQNames;
 import com.raul.ecommercehub.shared.messaging.SyncMessage;
 import com.raul.ecommercehub.shared.repository.BatchItemRepository;
 import com.raul.ecommercehub.shared.repository.ProductRepository;
+import com.raul.ecommercehub.worker.cache.MarketplaceCredentialsCacheService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -20,11 +24,19 @@ public class SyncListener {
 
     private final BatchItemRepository batchItemRepository;
     private final ProductRepository productRepository;
+    private final MarketplaceCredentialsCacheService credentialsCacheService;
 
     @RabbitListener(queues = RabbitMQNames.SYNC_QUEUE)
     @Transactional
+    @CircuitBreaker(name = "marketplaceSync")
     public void handle(SyncMessage message) {
         log.info("Received sync message for batchItem={}, product={}", message.batchItemId(), message.productId());
+
+        TenantIntegrationConfig credentials = credentialsCacheService.getCredentials(
+                message.tenantId(), MarketplaceType.AMAZON);
+
+        log.info("Using credentials for tenant={}, marketplace={}, expiresAt={}",
+                message.tenantId(), credentials.getMarketplace(), credentials.getTokenExpiresAt());
 
         simulateExternalMarketplaceCall(message);
 
@@ -42,11 +54,6 @@ public class SyncListener {
         log.info("BatchItem {} marked as SUCCESS", batchItem.getId());
     }
 
-    /**
-     * TEMPORARY (step 5): simulates calling Mercado Livre/Amazon. WireMock replaces
-     * this in step 6. For now, any price under 100 simulates a failed call, so
-     * retry/backoff/DLQ behavior can be tested without a real HTTP dependency.
-     */
     private void simulateExternalMarketplaceCall(SyncMessage message) {
         if (message.newPrice() != null && message.newPrice().compareTo(BigDecimal.valueOf(100)) < 0) {
             log.warn("Simulated marketplace failure for batchItem={}", message.batchItemId());
