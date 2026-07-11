@@ -1,0 +1,14 @@
+{
+  "scenarioName": "marketplace-health",
+  "requiredScenarioState": "Healthy-3",
+  "newScenarioState": "Degrading-1",
+  "request": {
+    "method": "POST",
+    "urlPath": "/marketplace/sync"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": { "status": "SYNCED" },
+    "headers": { "Content-Type": "application/json" }
+  }
+}

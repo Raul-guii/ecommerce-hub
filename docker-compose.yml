@@ -48,6 +48,15 @@ services:
       timeout: 5s
       retries: 10
 
+  wiremock:
+    image: wiremock/wiremock:3.9.1
+    container_name: ecommerce-hub-wiremock
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./wiremock/mappings:/home/wiremock/mappings
+      - ./wiremock/__files:/home/wiremock/__files
+
   # api and worker join this file once their Dockerfiles exist (build roadmap, step 7).
   # Until then: run them from your IDE pointed at these three services with
   # DB_HOST=localhost / RABBITMQ_HOST=localhost.

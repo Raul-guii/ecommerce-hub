@@ -1,6 +1,7 @@
 package com.raul.ecommercehub.worker.listener;
 
 import com.raul.ecommercehub.shared.domain.BatchItem;
+import com.raul.ecommercehub.shared.domain.Product;
 import com.raul.ecommercehub.shared.domain.TenantIntegrationConfig;
 import com.raul.ecommercehub.shared.domain.enums.MarketplaceType;
 import com.raul.ecommercehub.shared.messaging.RabbitMQNames;
@@ -8,14 +9,13 @@ import com.raul.ecommercehub.shared.messaging.SyncMessage;
 import com.raul.ecommercehub.shared.repository.BatchItemRepository;
 import com.raul.ecommercehub.shared.repository.ProductRepository;
 import com.raul.ecommercehub.worker.cache.MarketplaceCredentialsCacheService;
+import com.raul.ecommercehub.worker.client.MarketplaceClient;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 @Component
 @RequiredArgsConstructor
@@ -25,6 +25,7 @@ public class SyncListener {
     private final BatchItemRepository batchItemRepository;
     private final ProductRepository productRepository;
     private final MarketplaceCredentialsCacheService credentialsCacheService;
+    private final MarketplaceClient marketplaceClient;
 
     @RabbitListener(queues = RabbitMQNames.SYNC_QUEUE)
     @Transactional
@@ -34,11 +35,10 @@ public class SyncListener {
 
         TenantIntegrationConfig credentials = credentialsCacheService.getCredentials(
                 message.tenantId(), MarketplaceType.AMAZON);
-
         log.info("Using credentials for tenant={}, marketplace={}, expiresAt={}",
                 message.tenantId(), credentials.getMarketplace(), credentials.getTokenExpiresAt());
 
-        simulateExternalMarketplaceCall(message);
+        marketplaceClient.sync();
 
         BatchItem batchItem = batchItemRepository.findById(message.batchItemId())
                 .orElseThrow(() -> new IllegalStateException("BatchItem not found: " + message.batchItemId()));
@@ -52,12 +52,5 @@ public class SyncListener {
         batchItemRepository.save(batchItem);
 
         log.info("BatchItem {} marked as SUCCESS", batchItem.getId());
-    }
-
-    private void simulateExternalMarketplaceCall(SyncMessage message) {
-        if (message.newPrice() != null && message.newPrice().compareTo(BigDecimal.valueOf(100)) < 0) {
-            log.warn("Simulated marketplace failure for batchItem={}", message.batchItemId());
-            throw new RuntimeException("Simulated marketplace API failure");
-        }
     }
 }

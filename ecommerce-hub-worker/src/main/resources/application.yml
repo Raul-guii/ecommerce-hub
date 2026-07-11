@@ -1,6 +1,8 @@
 spring:
   application:
     name: ecommerce-hub-worker
+  main:
+    web-application-type: none
 
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:ecommerce_hub}
