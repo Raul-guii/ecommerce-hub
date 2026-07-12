@@ -10,6 +10,7 @@ import com.raul.ecommercehub.shared.repository.BatchItemRepository;
 import com.raul.ecommercehub.shared.repository.ProductRepository;
 import com.raul.ecommercehub.worker.cache.MarketplaceCredentialsCacheService;
 import com.raul.ecommercehub.worker.client.MarketplaceClient;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class SyncListener {
     private final ProductRepository productRepository;
     private final MarketplaceCredentialsCacheService credentialsCacheService;
     private final MarketplaceClient marketplaceClient;
+    private final BatchItemFailureRecorder failureRecorder;
 
     @RabbitListener(queues = RabbitMQNames.SYNC_QUEUE)
     @Transactional
@@ -38,10 +40,16 @@ public class SyncListener {
         log.info("Using credentials for tenant={}, marketplace={}, expiresAt={}",
                 message.tenantId(), credentials.getMarketplace(), credentials.getTokenExpiresAt());
 
-        marketplaceClient.sync();
-
         BatchItem batchItem = batchItemRepository.findById(message.batchItemId())
                 .orElseThrow(() -> new IllegalStateException("BatchItem not found: " + message.batchItemId()));
+
+        try {
+            marketplaceClient.sync();
+        } catch (Exception e) {
+            failureRecorder.recordFailure(batchItem, e.getMessage());
+            log.warn("Sync attempt failed for batchItem={}, attemptCount={}", batchItem.getId(), batchItem.getAttemptCount());
+            throw e;
+        }
 
         productRepository.findById(message.productId()).ifPresent(product -> {
             product.applyStockAndPrice(message.newStock(), message.newPrice());

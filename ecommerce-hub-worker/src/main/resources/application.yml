@@ -3,37 +3,37 @@ spring:
     name: ecommerce-hub-worker
   main:
     web-application-type: none
-
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:ecommerce_hub}
     username: ${DB_USERNAME:ecommerce_hub}
     password: ${DB_PASSWORD:changeme}
-
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
+resilience4j:
+  circuitbreaker:
+    instances:
+      marketplaceSync:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-closed-enabled: true
 
-  resilience4j:
-    circuitbreaker:
-      instances:
-        marketplaceSync:
-          sliding-window-size: 10
-          minimum-number-of-calls: 5
-          failure-rate-threshold: 50
-          wait-duration-in-open-state: 30s
-          permitted-number-of-calls-in-half-open-state: 1
-          automatic-transition-from-open-to-closed-enabled: true
+discord:
+  webhook-url: ${DISCORD_WEBHOOK_URL}
 
 server:
   port: ${SERVER_PORT:8081}
