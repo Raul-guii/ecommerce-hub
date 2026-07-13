@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: ecommerce-hub-worker
 spec:
-  replicas: 1
+  replicas: {{ .Values.worker.replicas }}
   selector:
     matchLabels:
       app: ecommerce-hub-worker
@@ -14,18 +14,18 @@ spec:
     spec:
       containers:
         - name: ecommerce-hub-worker
-          image: ecommerce-hub-worker:latest
+          image: {{ .Values.worker.image }}
           imagePullPolicy: Never
           env:
             - name: DB_HOST
-              value: "host.minikube.internal"
+              value: {{ .Values.env.dbHost | quote }}
             - name: RABBITMQ_HOST
-              value: "host.minikube.internal"
+              value: {{ .Values.env.dbHost | quote }}
             - name: REDIS_HOST
-              value: "host.minikube.internal"
+              value: {{ .Values.env.dbHost | quote }}
             - name: DB_USERNAME
-              value: "ecommerce_hub"
+              value: {{ .Values.env.dbUsername | quote }}
             - name: DB_PASSWORD
-              value: "312689840"
+              value: {{ .Values.env.dbPassword | quote }}
             - name: DISCORD_WEBHOOK_URL
-              value: "https://discord.com/api/webhooks/1525813135922040893/47p684pAMBpFiZGrK4xN6H3XFVnirYKf5GVn-vbaubrf0K-43EcRBsWJKYMUshFGfFxq"
+              value: {{ .Values.env.discordWebhookUrl | quote }}

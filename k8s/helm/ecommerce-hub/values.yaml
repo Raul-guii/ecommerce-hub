@@ -1,0 +1,15 @@
+api:
+  image: ecommerce-hub-api:latest
+  replicas: 1
+  nodePort: 30080
+
+worker:
+  image: ecommerce-hub-worker:latest
+  replicas: 1
+
+env:
+  dbHost: "host.minikube.internal"
+  dbUsername: "ecommerce_hub"
+  dbPassword: "312689840"
+  jwtSecret: "W9RlF6txdm5MyWHYNY/RDlIvXwx7FxnfgG3a8+pGzD8="
+  discordWebhookUrl: "https://discord.com/api/webhooks/1525813135922040893/47p684pAMBpFiZGrK4xN6H3XFVnirYKf5GVn-vbaubrf0K-43EcRBsWJKYMUshFGfFxq"

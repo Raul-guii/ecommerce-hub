@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: ecommerce-hub-api
 spec:
-  replicas: 1
+  replicas: {{ .Values.api.replicas }}
   selector:
     matchLabels:
       app: ecommerce-hub-api
@@ -14,20 +14,20 @@ spec:
     spec:
       containers:
         - name: ecommerce-hub-api
-          image: ecommerce-hub-api:latest
+          image: {{ .Values.api.image }}
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
           env:
             - name: DB_HOST
-              value: "host.minikube.internal"
+              value: {{ .Values.env.dbHost | quote }}
             - name: RABBITMQ_HOST
-              value: "host.minikube.internal"
+              value: {{ .Values.env.dbHost | quote }}
             - name: REDIS_HOST
-              value: "host.minikube.internal"
+              value: {{ .Values.env.dbHost | quote }}
             - name: DB_USERNAME
-              value: "ecommerce_hub"
+              value: {{ .Values.env.dbUsername | quote }}
             - name: DB_PASSWORD
-              value: "312689840"
+              value: {{ .Values.env.dbPassword | quote }}
             - name: JWT_SECRET
-              value: "W9RlF6txdm5MyWHYNY/RDlIvXwx7FxnfgG3a8+pGzD8="
+              value: {{ .Values.env.jwtSecret | quote }}
