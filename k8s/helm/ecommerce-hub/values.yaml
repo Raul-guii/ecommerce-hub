@@ -5,7 +5,7 @@ api:
 
 worker:
   image: ecommerce-hub-worker:latest
-  replicas: 1
+  replicas: 2
 
 env:
   dbHost: "host.minikube.internal"
