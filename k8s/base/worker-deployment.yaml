@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-hub-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-hub-worker
+  template:
+    metadata:
+      labels:
+        app: ecommerce-hub-worker
+    spec:
+      containers:
+        - name: ecommerce-hub-worker
+          image: ecommerce-hub-worker:latest
+          imagePullPolicy: Never
+          env:
+            - name: DB_HOST
+              value: "host.minikube.internal"
+            - name: RABBITMQ_HOST
+              value: "host.minikube.internal"
+            - name: REDIS_HOST
+              value: "host.minikube.internal"
+            - name: DB_USERNAME
+              value: "ecommerce_hub"
+            - name: DB_PASSWORD
+              value: "312689840"
+            - name: DISCORD_WEBHOOK_URL
+              value: "https://discord.com/api/webhooks/1525813135922040893/47p684pAMBpFiZGrK4xN6H3XFVnirYKf5GVn-vbaubrf0K-43EcRBsWJKYMUshFGfFxq"

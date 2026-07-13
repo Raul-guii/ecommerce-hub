@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-hub-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-hub-api
+  template:
+    metadata:
+      labels:
+        app: ecommerce-hub-api
+    spec:
+      containers:
+        - name: ecommerce-hub-api
+          image: ecommerce-hub-api:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_HOST
+              value: "host.minikube.internal"
+            - name: RABBITMQ_HOST
+              value: "host.minikube.internal"
+            - name: REDIS_HOST
+              value: "host.minikube.internal"
+            - name: DB_USERNAME
+              value: "ecommerce_hub"
+            - name: DB_PASSWORD
+              value: "312689840"
+            - name: JWT_SECRET
+              value: "W9RlF6txdm5MyWHYNY/RDlIvXwx7FxnfgG3a8+pGzD8="
