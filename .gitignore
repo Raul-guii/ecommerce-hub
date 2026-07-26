@@ -17,3 +17,5 @@ dist/
 
 # OS
 .DS_Store
+
+k8s/helm/ecommerce-hub/values.yaml

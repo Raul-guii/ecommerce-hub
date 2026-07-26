@@ -1,0 +1,20 @@
+api:
+  image: ecommerce-hub-api:latest
+  replicas: 1
+  nodePort: 30080
+
+worker:
+  image: ecommerce-hub-worker:latest
+
+keda:
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  queueLength: "5"
+
+env:
+  dbHost: "host.minikube.internal"
+  dbUsername: "ecommerce_hub"
+  dbPassword: "changeme"
+  jwtSecret: "generate-with-openssl-rand-base64-32"
+  discordWebhookUrl: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+  syncProcessingArtificialDelayMs: "0"
