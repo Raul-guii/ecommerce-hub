@@ -1,0 +1,19 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: ecommerce-hub-worker
+spec:
+  scaleTargetRef:
+    name: ecommerce-hub-worker
+
+  minReplicaCount: {{ .Values.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount }}
+
+  triggers:
+    - type: rabbitmq
+      metadata:
+        protocol: amqp
+        host: amqp://guest:guest@host.minikube.internal:5672/
+        queueName: sync-queue
+        mode: QueueLength
+        value: {{ .Values.keda.queueLength | quote }}

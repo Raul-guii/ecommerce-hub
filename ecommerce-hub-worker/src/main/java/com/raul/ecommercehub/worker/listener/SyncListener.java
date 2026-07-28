@@ -1,7 +1,6 @@
 package com.raul.ecommercehub.worker.listener;
 
 import com.raul.ecommercehub.shared.domain.BatchItem;
-import com.raul.ecommercehub.shared.domain.Product;
 import com.raul.ecommercehub.shared.domain.TenantIntegrationConfig;
 import com.raul.ecommercehub.shared.domain.enums.MarketplaceType;
 import com.raul.ecommercehub.shared.messaging.RabbitMQNames;
@@ -9,12 +8,11 @@ import com.raul.ecommercehub.shared.messaging.SyncMessage;
 import com.raul.ecommercehub.shared.repository.BatchItemRepository;
 import com.raul.ecommercehub.shared.repository.ProductRepository;
 import com.raul.ecommercehub.worker.cache.MarketplaceCredentialsCacheService;
-import com.raul.ecommercehub.worker.client.MarketplaceClient;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import com.raul.ecommercehub.worker.client.MarketplaceSyncExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,14 +24,31 @@ public class SyncListener {
     private final BatchItemRepository batchItemRepository;
     private final ProductRepository productRepository;
     private final MarketplaceCredentialsCacheService credentialsCacheService;
-    private final MarketplaceClient marketplaceClient;
+    private final MarketplaceSyncExecutor marketplaceSyncExecutor;
     private final BatchItemFailureRecorder failureRecorder;
+
+    @Value("${SYNC_PROCESSING_ARTIFICIAL_DELAY_MS:0}")
+    private long artificialDelayMs;
+
+    private void applyArtificialDelay() {
+        if (artificialDelayMs <= 0) {
+            return;
+        }
+        try {
+            log.info("Applying artificial delay of {} ms", artificialDelayMs);
+            Thread.sleep(artificialDelayMs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted during artificial delay", e);
+        }
+    }
 
     @RabbitListener(queues = RabbitMQNames.SYNC_QUEUE)
     @Transactional
-    @CircuitBreaker(name = "marketplaceSync")
     public void handle(SyncMessage message) {
         log.info("Received sync message for batchItem={}, product={}", message.batchItemId(), message.productId());
+
+        applyArtificialDelay();
 
         TenantIntegrationConfig credentials = credentialsCacheService.getCredentials(
                 message.tenantId(), MarketplaceType.AMAZON);
@@ -44,7 +59,7 @@ public class SyncListener {
                 .orElseThrow(() -> new IllegalStateException("BatchItem not found: " + message.batchItemId()));
 
         try {
-            marketplaceClient.sync();
+            marketplaceSyncExecutor.sync();
         } catch (Exception e) {
             failureRecorder.recordFailure(batchItem, e.getMessage());
             log.warn("Sync attempt failed for batchItem={}, attemptCount={}", batchItem.getId(), batchItem.getAttemptCount());

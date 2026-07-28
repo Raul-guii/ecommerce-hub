@@ -35,6 +35,9 @@ resilience4j:
 discord:
   webhook-url: ${DISCORD_WEBHOOK_URL}
 
+marketplace:
+  base-url: ${MARKETPLACE_BASE_URL:http://localhost:8082}
+
 server:
   port: ${SERVER_PORT:8081}
 

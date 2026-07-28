@@ -1,5 +1,6 @@
 package com.raul.ecommercehub.worker.client;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -8,9 +9,9 @@ public class MarketplaceClient {
 
     private final RestClient restClient;
 
-    public MarketplaceClient() {
+    public MarketplaceClient(@Value("${marketplace.base-url}") String baseUrl) {
         this.restClient = RestClient.builder()
-                .baseUrl("http://localhost:8082")
+                .baseUrl(baseUrl)
                 .build();
     }
 
