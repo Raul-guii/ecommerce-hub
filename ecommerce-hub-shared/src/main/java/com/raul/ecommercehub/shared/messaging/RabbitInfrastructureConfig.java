@@ -1,24 +1,22 @@
-package com.raul.ecommercehub.api.config;
+package com.raul.ecommercehub.shared.messaging;
 
-import com.raul.ecommercehub.shared.messaging.RabbitMQNames;
-import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
-import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.Queue;
 
 @Configuration
-public class RabbitMQConfig {
+public class RabbitInfrastructureConfig {
 
     public static final String SYNC_EXCHANGE = "sync-exchange";
     public static final String SYNC_QUEUE = RabbitMQNames.SYNC_QUEUE;
     public static final String SYNC_ROUTING_KEY = "sync";
 
     public static final String DLQ_EXCHANGE = "sync-dlq-exchange";
-    public static final String DLQ_QUEUE = "sync-dlq";
+    public static final String DLQ_QUEUE = RabbitMQNames.SYNC_DLQ;
     public static final String DLQ_ROUTING_KEY = "sync-dlq";
 
     @Bean
@@ -52,22 +50,5 @@ public class RabbitMQConfig {
     @Bean
     public Binding dlqBinding() {
         return BindingBuilder.bind(dlqQueue()).to(dlqExchange()).with(DLQ_ROUTING_KEY);
-    }
-
-    @Bean
-    public MessageConverter jsonMessageConverter() {
-        return new JacksonJsonMessageConverter();
-    }
-
-    @Bean
-    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter jsonMessageConverter) {
-        RabbitTemplate template = new RabbitTemplate(connectionFactory);
-        template.setMessageConverter(jsonMessageConverter);
-        return template;
-    }
-
-    @Bean
-    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
-        return new RabbitAdmin(connectionFactory);
     }
 }
