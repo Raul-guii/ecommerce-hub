@@ -9,6 +9,7 @@ import com.raul.ecommercehub.shared.repository.BatchItemRepository;
 import com.raul.ecommercehub.shared.repository.ProductRepository;
 import com.raul.ecommercehub.worker.cache.MarketplaceCredentialsCacheService;
 import com.raul.ecommercehub.worker.client.MarketplaceSyncExecutor;
+import com.raul.ecommercehub.worker.metrics.SyncMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -26,6 +27,7 @@ public class SyncListener {
     private final MarketplaceCredentialsCacheService credentialsCacheService;
     private final MarketplaceSyncExecutor marketplaceSyncExecutor;
     private final BatchItemFailureRecorder failureRecorder;
+    private final SyncMetrics syncMetrics;
 
     @Value("${SYNC_PROCESSING_ARTIFICIAL_DELAY_MS:0}")
     private long artificialDelayMs;
@@ -48,6 +50,8 @@ public class SyncListener {
     public void handle(SyncMessage message) {
         log.info("Received sync message for batchItem={}, product={}", message.batchItemId(), message.productId());
 
+        long startTime = System.currentTimeMillis();
+
         applyArtificialDelay();
 
         TenantIntegrationConfig credentials = credentialsCacheService.getCredentials(
@@ -62,6 +66,7 @@ public class SyncListener {
             marketplaceSyncExecutor.sync();
         } catch (Exception e) {
             failureRecorder.recordFailure(batchItem, e.getMessage());
+            syncMetrics.recordFailure(System.currentTimeMillis() - startTime);
             log.warn("Sync attempt failed for batchItem={}, attemptCount={}", batchItem.getId(), batchItem.getAttemptCount());
             throw e;
         }
@@ -73,6 +78,8 @@ public class SyncListener {
 
         batchItem.markSuccess();
         batchItemRepository.save(batchItem);
+
+        syncMetrics.recordSuccess(System.currentTimeMillis() - startTime);
 
         log.info("BatchItem {} marked as SUCCESS", batchItem.getId());
     }

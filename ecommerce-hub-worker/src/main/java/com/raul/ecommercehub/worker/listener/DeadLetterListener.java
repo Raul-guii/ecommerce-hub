@@ -9,6 +9,7 @@ import com.raul.ecommercehub.shared.repository.BatchItemRepository;
 import com.raul.ecommercehub.shared.repository.ProductRepository;
 import com.raul.ecommercehub.shared.repository.TenantRepository;
 import com.raul.ecommercehub.worker.alert.DiscordAlertService;
+import com.raul.ecommercehub.worker.metrics.SyncMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,6 +25,7 @@ public class DeadLetterListener {
     private final ProductRepository productRepository;
     private final TenantRepository tenantRepository;
     private final DiscordAlertService discordAlertService;
+    private final SyncMetrics syncMetrics;
 
     @RabbitListener(queues = RabbitMQNames.SYNC_DLQ)
     @Transactional
@@ -33,6 +35,8 @@ public class DeadLetterListener {
         batchItemRepository.findById(message.batchItemId()).ifPresent(item -> {
             item.markDeadLetter("Failed after exhausting all retry attempts");
             batchItemRepository.save(item);
+
+            syncMetrics.recordDeadLetter();
 
             String productName = productRepository.findById(message.productId())
                     .map(Product::getName)
