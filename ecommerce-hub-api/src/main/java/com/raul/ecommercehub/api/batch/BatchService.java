@@ -8,9 +8,13 @@ import com.raul.ecommercehub.shared.messaging.SyncMessage;
 import com.raul.ecommercehub.shared.repository.BatchItemRepository;
 import com.raul.ecommercehub.shared.repository.BatchRepository;
 import com.raul.ecommercehub.shared.repository.ProductRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -25,8 +29,17 @@ public class BatchService {
     private final ProductRepository productRepository;
     private final RabbitTemplate rabbitTemplate;
 
-    @Transactional
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public BatchResponse createBatch(UUID tenantId, BatchRequest request) {
+        // Nova transação = possivelmente nova Session do Hibernate.
+        // O filtro do tenant não é herdado automaticamente — reaplica aqui.
+        entityManager.unwrap(Session.class)
+                .enableFilter("tenantFilter")
+                .setParameter("tenantId", tenantId.toString());
+
         Batch batch = new Batch(UUID.randomUUID(), tenantId, request.items().size());
         batchRepository.save(batch);
 
