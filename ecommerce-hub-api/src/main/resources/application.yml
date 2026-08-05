@@ -40,6 +40,17 @@ security:
     access-token-ttl-minutes: 15
     refresh-token-ttl-days: 7
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, metrics
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      application: ${spring.application.name}
 server:
   port: ${SERVER_PORT:8080}
 

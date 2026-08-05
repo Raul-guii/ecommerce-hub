@@ -1,8 +1,6 @@
 spring:
   application:
     name: ecommerce-hub-worker
-  main:
-    web-application-type: none
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:ecommerce_hub}
     username: ${DB_USERNAME:ecommerce_hub}
@@ -37,6 +35,20 @@ discord:
 
 marketplace:
   base-url: ${MARKETPLACE_BASE_URL:http://localhost:8082}
+
+management:
+  server:
+    port: ${WORKER_MANAGEMENT_PORT:9091}
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, metrics
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 server:
   port: ${SERVER_PORT:8081}
