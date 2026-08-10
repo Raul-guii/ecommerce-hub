@@ -1,0 +1,10 @@
+security:
+  jwt:
+    secret: "test-secret-key-not-for-production-use-only-in-tests-1234567890"
+    access-token-ttl-minutes: 15
+  argon2:
+    salt-length: 16
+    hash-length: 32
+    parallelism: 1
+    memory-kb: 19456
+    iterations: 2
