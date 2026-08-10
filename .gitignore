@@ -5,6 +5,11 @@
 target/
 *.class
 
+# JVM crash logs
+*.log
+hs_err_pid*
+replay_pid*
+
 # IDE
 .idea/
 *.iml

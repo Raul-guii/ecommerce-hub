@@ -12,14 +12,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,6 +60,9 @@ class TenantIsolationTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
     @AfterEach
     void clearTenantContext() {
         TenantContext.clear();
@@ -69,20 +76,39 @@ class TenantIsolationTest {
         persistProduct(tenantA.getId(), "SKU-A");
         persistProduct(tenantB.getId(), "SKU-B");
 
-        enableTenantFilter(tenantA.getId());
-
-        List<Product> visibleProducts = productRepository.findAll();
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        List<Product> visibleProducts = transactionTemplate.execute(status -> {
+            enableTenantFilter(tenantA.getId());
+            return productRepository.findAll();
+        });
 
         assertThat(visibleProducts)
                 .isNotEmpty()
                 .allMatch(p -> p.getTenantId().equals(tenantA.getId()));
     }
 
+    @Test
+    void semFiltroHabilitado_retornaProdutosDeTodosOsTenants() {
+        Tenant tenantA = persistTenant("Tenant A");
+        Tenant tenantB = persistTenant("Tenant B");
+
+        persistProduct(tenantA.getId(), "SKU-A");
+        persistProduct(tenantB.getId(), "SKU-B");
+
+        List<Product> allProducts = productRepository.findAll();
+
+        assertThat(allProducts)
+                .extracting(Product::getTenantId)
+                .contains(tenantA.getId(), tenantB.getId());
+    }
+
+    private static final AtomicInteger CNPJ_SEQUENCE = new AtomicInteger(0);
+
     private Tenant persistTenant(String name) {
         Tenant tenant = new Tenant(
                 UUID.randomUUID(),
                 name,
-                "cnpj-" + UUID.randomUUID(),
+                String.format("%014d", CNPJ_SEQUENCE.incrementAndGet()),
                 Tenant.Plan.FREE,
                 Tenant.TenantStatus.ACTIVE,
                 LocalDateTime.now());
@@ -100,6 +126,6 @@ class TenantIsolationTest {
         TenantContext.set(tenantId);
         entityManager.unwrap(Session.class)
                 .enableFilter("tenantFilter")
-                .setParameter("tenantId", tenantId);
+                .setParameter("tenantId", tenantId.toString());
     }
 }
