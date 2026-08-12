@@ -2,6 +2,7 @@
 FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 COPY . .
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 RUN ./mvnw package -pl ecommerce-hub-worker -am -DskipTests
 
 # Stage 2: runtime
