@@ -1,0 +1,13 @@
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 45.65 s -- in com.raul.ecommercehub.worker.listener.DeadLetterListenerTest
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  51.275 s
+[INFO] Finished at: 2026-08-11T19:15:49-03:00
+[INFO] ------------------------------------------------------------------------
+

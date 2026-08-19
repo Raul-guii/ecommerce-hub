@@ -12,8 +12,8 @@ spec:
   triggers:
     - type: rabbitmq
       metadata:
-        protocol: amqp
-        host: amqp://guest:guest@host.minikube.internal:5672/
+        protocol: http
+        host: http://guest:guest@host.minikube.internal:15672/
         queueName: sync-queue
         mode: QueueLength
-        value: {{ .Values.keda.queueLength | quote }}
+        value: {{ .Values.keda.queueLength | quote }.

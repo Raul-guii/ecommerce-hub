@@ -1,0 +1,12 @@
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 47.00 s -- in com.raul.ecommercehub.api.auth.AuthServiceTest
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  54.782 s
+[INFO] Finished at: 2026-08-10T19:13:43-03:00
+[INFO] ------------------------------------------------------------------------
