@@ -18,25 +18,9 @@ E-commerce Hub solves this by decoupling the fast path (receiving updates) from 
 
 ## Architecture
 
-```
-                    ┌──────────────┐
-  Merchant  ──POST──▶   API (8080) │──publish──▶  RabbitMQ  ──consume──▶  Worker (8081)
-                    │  JWT + Argon2 │             sync-queue              │
-                    │  Tenant filter│                                     ├──▶ Marketplace (Amazon/ML)
-                    └──────┬───────┘                                     │      via Resilience4j
-                           │                                             │      (retry + circuit breaker)
-                           │                                             ├──▶ Redis (credentials cache)
-                           ▼                                             │
-                        MySQL  ◀────────────────────────────────────────┘
-                    (Flyway-managed schema)                              │
-                                                                          ├──▶ sync-dlq (on exhausted retries)
-                                                                          └──▶ Discord webhook (alert)
+![Architecture diagram](docs/architecture.png)
 
-Both API and Worker expose /actuator/prometheus → scraped by Prometheus → visualized in Grafana
-Both run as Kubernetes Deployments; Worker autoscales via KEDA based on queue depth
-```
-
-A batch upload returns `202 Accepted` immediately — the caller never waits for marketplace calls to complete. Each `BatchItem` moves through `PENDING → SUCCESS | FAILED → DEAD_LETTER`, tracked independently.
+A batch upload returns `202 Accepted` immediately — the caller never waits for marketplace calls to complete. Each `BatchItem` moves through `PENDING → SUCCESS | FAILED → DEAD_LETTER`, tracked independently. Both API and Worker run as Kubernetes Deployments; the Worker autoscales via KEDA based on queue depth, not CPU/memory.
 
 ---
 
@@ -48,25 +32,25 @@ Talk is cheap — this section is the evidence, not the pitch.
 
 The Worker scales from 1 to 10 replicas in response to actual RabbitMQ queue depth — not CPU/memory, the default Kubernetes metric, which wouldn't reflect backlog on an I/O-bound consumer like this one.
 
-`![HPA scaling from 1 to 10 replicas](docs/images/keda-hpa-scaling.png)`
+![HPA scaling from 1 to 10 replicas](docs/images/keda-hpa-scaling.png)
 *`kubectl get hpa -w` — replica count climbing as the metric crosses the threshold: 1 → 4 → 8 → 10.*
 
-`![Kubernetes scaling events](docs/images/keda-scaling-events.png)`
+![Kubernetes scaling events](docs/images/keda-scaling-events.png)
 *Native Kubernetes events confirming each step: `Scaled up replica set ... from 1 to 4`, `from 4 to 8`, `from 8 to 10`.*
 
-`![RabbitMQ queue under load](docs/images/rabbitmq-unacked-load.png)`
+![RabbitMQ queue under load](docs/images/rabbitmq-unacked-load.png)
 *RabbitMQ management UI mid-test: 118 messages unacked, all 10 replicas consuming in parallel.*
 
 ### Tests run against real infrastructure, on every push
 
 No mocked databases in integration tests — Testcontainers spins up real MySQL instances. The pipeline fails the build if any of it breaks.
 
-`![GitHub Actions CI passing](docs/images/ci-green.png)`
+![GitHub Actions CI passing](docs/images/ci-green.png)
 *Both pipeline jobs green: test suite (Testcontainers-backed) and Docker image build/publish to GHCR.*
 
 ### Observability under load
 
-`![Grafana dashboard with live metrics](docs/images/grafana-dashboard.png)`
+![Grafana dashboard with live metrics](docs/images/grafana-dashboard.png)
 *Prometheus + Grafana: sync throughput, worker pod count, and success/failure rate rendering real data during a load test.*
 
 ---
