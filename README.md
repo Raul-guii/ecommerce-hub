@@ -66,6 +66,7 @@ Talk is cheap — this section is the evidence, not the pitch.
 The Worker scales from 1 to 10 replicas in response to actual RabbitMQ queue depth — not CPU/memory, the default Kubernetes metric, which wouldn't reflect backlog on an I/O-bound consumer like this one.
 
 ![Worker scaling from 1 to 10 replicas](docs/images/worker-pods-scaling.png)
+
 *`kubectl get pods -l app=ecommerce-hub-worker -w` — new pods spinning up in real time (`Pending → ContainerCreating → Running`) as KEDA scales the Worker from 1 to 10 replicas in response to real RabbitMQ backlog.*
 
 ### Tests run against real infrastructure, on every push
@@ -78,12 +79,15 @@ No mocked databases in integration tests — Testcontainers spins up real MySQL 
 ### Observability under load
 
 ![Grafana dashboard Sync Success / Failure Rate](docs/images/sync-failure.png)
+
 *16 items were successfully synchronized, while 4 were sent to the Dead Letter Queue after exhausting all retry attempts. Despite the failures, the remaining processing continued normally without bringing the system to a halt.*
 
 ![Grafana dashboard Average Sync Duration](docs/images/average-sync.png)
+
 *The increase in average processing time clearly shows when the exponential backoff retries and Circuit Breaker came into action during marketplace failures.*
 
 ![Grafana dashboard API Average Response Time](docs/images/api-average.png)
+
 *The dashboard also automatically monitors API endpoint latency through Spring Boot Actuator. For example, it is possible to identify the higher response time of the authentication endpoint due to the use of Argon2id.*
 
 ---
